@@ -52,6 +52,13 @@
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+
+		<!--	Mollie API for JAVA	-->
+		<dependency>
+			<groupId>be.woutschoovaerts</groupId>
+			<artifactId>mollie</artifactId>
+			<version>3.7.1</version>
+		</dependency>
 	</dependencies>
 
 	<build>

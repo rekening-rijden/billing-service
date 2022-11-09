@@ -2,6 +2,7 @@ package com.rekeningrijden.billingservice.services;
 
 import be.woutschoovaerts.mollie.Client;
 import be.woutschoovaerts.mollie.ClientBuilder;
+import be.woutschoovaerts.mollie.data.payment.PaymentRequest;
 import be.woutschoovaerts.mollie.data.payment.PaymentResponse;
 import be.woutschoovaerts.mollie.exception.MollieException;
 import com.rekeningrijden.billingservice.models.DTOs.PaymentInfoDTO;
@@ -35,7 +36,8 @@ public class BillingService {
 
         // Create payment with mollie
         try {
-            PaymentResponse paymentResponse = this.mollieClient.payments().createPayment(PaymentRequest)
+            PaymentRequest request = new PaymentRequest();
+            PaymentResponse paymentResponse = this.mollieClient.payments().createPayment()
             return ResponseEntity.ok(paymentResponse);
         } catch (MollieException e) {
             e.printStackTrace();

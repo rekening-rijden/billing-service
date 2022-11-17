@@ -37,20 +37,26 @@ public class BillingService {
         return "test";
     }
 
-    public ResponseEntity<?> createPayment(/*PaymentInfoDTO paymentInfoDTO*/) {
+    public ResponseEntity<?> createPayment(PaymentInfoDTO paymentInfoDTO) {
         // Check if paymetInfoDTO is valid
-//        if (paymentInfoDTO == null) {
-//            return ResponseEntity.badRequest().body("PaymentInfoDTO is null");
-//        }
+        if (paymentInfoDTO == null ) {
+            return ResponseEntity.badRequest().body("PaymentInfoDTO is null");
+        }
+        if (paymentInfoDTO.getDescription() == null || paymentInfoDTO.getDescription().isEmpty()) {
+            return ResponseEntity.badRequest().body("Description is null or empty");
+        }
+        if (paymentInfoDTO.getAmount() == null || paymentInfoDTO.getAmount().getValue() == null || paymentInfoDTO.getAmount().getValue().compareTo(BigDecimal.ZERO) <= 0) {
+            return ResponseEntity.badRequest().body("Amount is null");
+        }
+
         // Create payment with mollie
         try {
             PaymentRequest paymentRequest = new PaymentRequest();
-            paymentRequest.setAmount(new Amount("EUR", new BigDecimal("10.00")));
-            paymentRequest.setDescription("Test payment");
-            paymentRequest.setRedirectUrl(java.util.Optional.of("https://www.google.com"));
-
+            paymentRequest.setAmount(paymentInfoDTO.getAmount());
+            paymentRequest.setDescription(paymentInfoDTO.getDescription());
             PaymentResponse paymentResponse = this.mollieClient.payments().createPayment(paymentRequest);
                 System.out.println(paymentResponse);
+                System.out.println(paymentResponse.getLinks().getCheckout().getHref());
             return ResponseEntity.ok(paymentResponse);
         } catch (MollieException e) {
             e.printStackTrace();

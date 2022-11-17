@@ -6,8 +6,9 @@ import com.rekeningrijden.billingservice.services.BillingService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-@RestController("/billing")
+@RestController
 @CrossOrigin(origins = "*")
+@RequestMapping("/billing")
 public class BillingController {
     private final BillingService billingService;
 
@@ -22,7 +23,7 @@ public class BillingController {
 
     @PostMapping("/createpayment")
     public ResponseEntity<?> createPayment(@RequestBody PaymentInfoDTO paymentInfoDTO) {
-        return this.billingService.createPayment(/*paymentInfoDTO*/);
+        return this.billingService.createPayment(paymentInfoDTO);
     }
 
     @GetMapping("/getpayment/{paymentId}")

@@ -9,6 +9,7 @@ import be.woutschoovaerts.mollie.data.payment.PaymentResponse;
 import be.woutschoovaerts.mollie.exception.MollieException;
 import com.rekeningrijden.billingservice.models.DTOs.PaymentInfoDTO;
 import com.rekeningrijden.billingservice.reporitories.BillingRepository;
+import com.rekeningrijden.billingservice.reporitories.InvoiceRepository;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.springframework.http.ResponseEntity;
@@ -22,12 +23,14 @@ import java.util.List;
 @Service
 public class BillingService {
     private final BillingRepository billlingRepository;
+    private final InvoiceRepository invoiceRepository;
     private final Client mollieClient;
     private final HttpClient httpClient;
     private final List<PaymentMethod> paymentMethods = List.of(PaymentMethod.IDEAL, PaymentMethod.CREDIT_CARD);
 
-    public BillingService(BillingRepository billlingRepository) {
+    public BillingService(BillingRepository billlingRepository, InvoiceRepository invoiceRepository) {
         this.billlingRepository = billlingRepository;
+        this.invoiceRepository = invoiceRepository;
         this.httpClient = HttpClient.newBuilder().build();
         this.mollieClient = new ClientBuilder().withApiKey("test_HUS9ADTxAkq5nqAB3RGWxrSaxj55uC").build();
     }
@@ -68,5 +71,9 @@ public class BillingService {
     public ResponseEntity<?> getPaymentById(String paymentId) throws MollieException {
         PaymentResponse paymentResponse = this.mollieClient.payments().getPayment(paymentId);
         return null;
+    }
+
+    public ResponseEntity<?> getAllInvoices(String carId) {
+        return invoiceRepository.findAllByCarId(carId);
     }
 }

@@ -26,6 +26,11 @@ public class BillingController {
         return this.billingService.createPayment(paymentInfoDTO);
     }
 
+    @GetMapping("/invoice/{carId}")
+    public ResponseEntity<?> getAllInvoices(@PathVariable String carId) {
+        return this.billingService.getAllInvoices(carId);
+    }
+
     @GetMapping("/getpayment/{paymentId}")
     public ResponseEntity<?> getPaymentById(@PathVariable String paymentId) throws MollieException {
         return this.billingService.getPaymentById(paymentId);

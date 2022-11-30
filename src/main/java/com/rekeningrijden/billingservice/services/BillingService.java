@@ -8,6 +8,8 @@ import be.woutschoovaerts.mollie.data.payment.PaymentRequest;
 import be.woutschoovaerts.mollie.data.payment.PaymentResponse;
 import be.woutschoovaerts.mollie.exception.MollieException;
 import com.rekeningrijden.billingservice.models.DTOs.PaymentInfoDTO;
+import com.rekeningrijden.billingservice.models.DTOs.RouteDTO;
+import com.rekeningrijden.billingservice.models.Invoice;
 import com.rekeningrijden.billingservice.reporitories.BillingRepository;
 import com.rekeningrijden.billingservice.reporitories.InvoiceRepository;
 import org.apache.http.client.methods.HttpGet;
@@ -17,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,7 +34,7 @@ public class BillingService {
     public BillingService(BillingRepository billlingRepository, InvoiceRepository invoiceRepository) {
         this.billlingRepository = billlingRepository;
         this.invoiceRepository = invoiceRepository;
-        this.httpClient = HttpClient.newBuilder().build();
+        this.httpClient = HttpClient.newHttpClient();
         this.mollieClient = new ClientBuilder().withApiKey("test_HUS9ADTxAkq5nqAB3RGWxrSaxj55uC").build();
     }
 
@@ -40,7 +43,7 @@ public class BillingService {
         return "test";
     }
 
-    public ResponseEntity<?> createPayment(PaymentInfoDTO paymentInfoDTO) {
+    public ResponseEntity<?> createPaymentLink(PaymentInfoDTO paymentInfoDTO) {
         // Check if paymetInfoDTO is valid
         if (paymentInfoDTO == null ) {
             return ResponseEntity.badRequest().body("PaymentInfoDTO is null");
@@ -57,10 +60,11 @@ public class BillingService {
             PaymentRequest paymentRequest = new PaymentRequest();
             paymentRequest.setAmount(paymentInfoDTO.getAmount());
             paymentRequest.setDescription(paymentInfoDTO.getDescription());
+            paymentRequest.setRedirectUrl(java.util.Optional.of("https://www.google.com/"));
             PaymentResponse paymentResponse = this.mollieClient.payments().createPayment(paymentRequest);
                 System.out.println(paymentResponse);
                 System.out.println(paymentResponse.getLinks().getCheckout().getHref());
-            return ResponseEntity.ok(paymentResponse);
+            return ResponseEntity.ok(paymentResponse.getLinks().getCheckout().getHref());
         } catch (MollieException e) {
             e.printStackTrace();
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -76,4 +80,40 @@ public class BillingService {
     public ResponseEntity<?> getAllInvoices(String carId) {
         return invoiceRepository.findAllByCarId(carId);
     }
+
+//    public ResponseEntity<?> createInvoiceByRoutes(List<RouteDTO> routes) {
+//        // Check if routes is valid
+//        if (routes == null || routes.isEmpty()) {
+//            return ResponseEntity.badRequest().body("Routes is null or empty");
+//        }
+//
+//        // Get price per kilometer
+//        var pricePerKilometer = "0.15";
+//
+//        // Create invoice
+//        var invoice = new Invoice();
+//        invoice.setCarId(routes.get(0).getCarId());
+//        invoice.setPricePerKilometer(new BigDecimal(pricePerKilometer));
+//        invoice.setRoutes(routes);
+//        invoice.setTotalPrice(calculateTotalPrice(routes, new BigDecimal(pricePerKilometer)));
+//        invoice.setPaid(false);
+//        invoice.setPaymentId(null);
+//
+//
+//        invoiceRepository.save(invoice);
+//        return ResponseEntity.ok(invoice);
+//    }
+//
+//    public ResponseEntity<?> createInvoiceByCarId(String carId) {
+//        // Check if carId is valid
+//        if (carId == null || carId.isEmpty()) {
+//            return ResponseEntity.badRequest().body("CarId is null or empty");
+//        }
+//
+//        // Get Car information.
+//        var carInfo = getCarInfo(carId);
+//        if (carInfo == null) {
+//            return ResponseEntity.badRequest().body("CarId is not valid");
+//        }
+//    }
 }

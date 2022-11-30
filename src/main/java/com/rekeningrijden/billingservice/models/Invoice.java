@@ -1,11 +1,19 @@
 package com.rekeningrijden.billingservice.models;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import java.util.Date;
+import com.rekeningrijden.billingservice.models.DTOs.RouteDTO;
+import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import org.springframework.util.RouteMatcher;
 
+import javax.persistence.*;
+import java.math.BigDecimal;
+import java.util.Date;
+import java.util.List;
+
+@Getter
+@Setter
+@Data
 @Entity
 public class Invoice {
     @Id
@@ -15,5 +23,5 @@ public class Invoice {
     private Date date;
     private double amount;
     private String description;
-
+    private BigDecimal pricePerKilometer;
 }

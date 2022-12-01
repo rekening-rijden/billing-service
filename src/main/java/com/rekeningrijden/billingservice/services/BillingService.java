@@ -7,8 +7,11 @@ import be.woutschoovaerts.mollie.data.payment.PaymentMethod;
 import be.woutschoovaerts.mollie.data.payment.PaymentRequest;
 import be.woutschoovaerts.mollie.data.payment.PaymentResponse;
 import be.woutschoovaerts.mollie.exception.MollieException;
+import com.rekeningrijden.billingservice.DistanceCalculator;
+import com.rekeningrijden.billingservice.models.CalculatedPrice;
 import com.rekeningrijden.billingservice.models.DTOs.PaymentInfoDTO;
 import com.rekeningrijden.billingservice.models.DTOs.RouteDTO;
+import com.rekeningrijden.billingservice.models.DataPoint;
 import com.rekeningrijden.billingservice.models.Invoice;
 import com.rekeningrijden.billingservice.reporitories.BillingRepository;
 import com.rekeningrijden.billingservice.reporitories.InvoiceRepository;
@@ -21,26 +24,66 @@ import java.math.BigDecimal;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+
+import static com.fasterxml.jackson.databind.type.LogicalType.DateTime;
 
 @Service
 public class BillingService {
     private final BillingRepository billlingRepository;
     private final InvoiceRepository invoiceRepository;
     private final Client mollieClient;
-    private final HttpClient httpClient;
     private final List<PaymentMethod> paymentMethods = List.of(PaymentMethod.IDEAL, PaymentMethod.CREDIT_CARD);
+    private final DistanceCalculator distanceCalculator;
 
-    public BillingService(BillingRepository billlingRepository, InvoiceRepository invoiceRepository) {
+    public BillingService(BillingRepository billlingRepository,
+                          InvoiceRepository invoiceRepository) {
         this.billlingRepository = billlingRepository;
         this.invoiceRepository = invoiceRepository;
-        this.httpClient = HttpClient.newHttpClient();
+        this.distanceCalculator = new DistanceCalculator();
         this.mollieClient = new ClientBuilder().withApiKey("test_HUS9ADTxAkq5nqAB3RGWxrSaxj55uC").build();
+
     }
 
-    public String test() {
-        // return this.billingRepository.findAll();
-        return "test";
+    public CalculatedPrice calculatePrice(List<RouteDTO> routes) {
+        double totalDistance = 0;
+        double totalVehiclePrice = 0;
+        double totalRoadPrice = 0;
+        double totalTimePrice = 0;
+        double totalPrice = 0;
+
+        for(RouteDTO route: routes) {
+            for (int i = 0; i < route.getCoords().size(); i++) {
+                if (i + 1 < route.getCoords().size()) {
+                    DataPoint dataPoint = route.getCoords().get(i);
+                    DataPoint nextDataPoint = route.getCoords().get(i + 1);
+
+                    double distance = distanceCalculator.calculateDistance(
+                            dataPoint,
+                            nextDataPoint);
+
+                    Date dateTimeDataPoint = dataPoint.getTimestamp();
+                    Date dateTimeNextDataPoint = nextDataPoint.getTimestamp();
+
+                    double vehiclePrice = distance * 0.1;
+                    double roadPrice = distance * 0.1;
+                    double timePrice = distance * 0.1;
+
+                    totalDistance += distance;
+                    totalVehiclePrice += vehiclePrice;
+                    totalRoadPrice += roadPrice;
+                    totalTimePrice += timePrice;
+                }
+            }
+            totalPrice = totalVehiclePrice + totalRoadPrice + totalTimePrice;
+        }
+        return new CalculatedPrice(
+                totalDistance,
+                totalVehiclePrice,
+                totalRoadPrice,
+                totalTimePrice,
+                totalPrice);
     }
 
     public ResponseEntity<?> createPaymentLink(PaymentInfoDTO paymentInfoDTO) {

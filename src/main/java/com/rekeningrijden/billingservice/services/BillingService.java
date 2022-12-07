@@ -30,6 +30,7 @@ public class BillingService {
     private final Client mollieClient;
     private final HttpClient httpClient;
     private final List<PaymentMethod> paymentMethods = List.of(PaymentMethod.IDEAL, PaymentMethod.CREDIT_CARD);
+    private final DistanceCalculator distanceCalculator;
 
     public BillingService(BillingRepository billlingRepository, InvoiceRepository invoiceRepository) {
         this.billlingRepository = billlingRepository;
@@ -41,6 +42,45 @@ public class BillingService {
     public String test() {
         // return this.billingRepository.findAll();
         return "test";
+    public CalculatedPrice calculatePrice(List<RouteDTO> routes) {
+        double totalDistance = 0;
+        double totalVehiclePrice = 0;
+        double totalRoadPrice = 0;
+        double totalTimePrice = 0;
+        double totalPrice = 0;
+
+        for(RouteDTO route: routes) {
+            for (int i = 0; i < route.getCoords().size(); i++) {
+                if (i + 1 < route.getCoords().size()) {
+                    DataPoint dataPoint = route.getCoords().get(i);
+                    DataPoint nextDataPoint = route.getCoords().get(i + 1);
+
+                    double distance = distanceCalculator.calculateDistance(
+                            dataPoint,
+                            nextDataPoint);
+
+                    Date dateTimeDataPoint = dataPoint.getTimestamp();
+                    Date dateTimeNextDataPoint = nextDataPoint.getTimestamp();
+
+                    double vehiclePrice = distance * 0.1;
+                    double roadPrice = distance * 0.1;
+                    double timePrice = distance * 0.1;
+
+                    totalDistance += distance;
+                    totalVehiclePrice += vehiclePrice;
+                    totalRoadPrice += roadPrice;
+                    totalTimePrice += timePrice;
+                }
+            }
+            totalPrice = totalVehiclePrice + totalRoadPrice + totalTimePrice;
+        }
+        return new CalculatedPrice(
+                totalDistance,
+                totalVehiclePrice,
+                totalRoadPrice,
+                totalTimePrice,
+                totalPrice
+        );
     }
 
     public ResponseEntity<?> createPaymentLink(PaymentInfoDTO paymentInfoDTO) {

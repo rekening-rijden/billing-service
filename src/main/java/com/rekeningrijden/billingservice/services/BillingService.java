@@ -9,6 +9,7 @@ import be.woutschoovaerts.mollie.data.payment.PaymentResponse;
 import be.woutschoovaerts.mollie.exception.MollieException;
 import com.rekeningrijden.billingservice.models.DTOs.PaymentInfoDTO;
 import com.rekeningrijden.billingservice.models.DTOs.RouteDTO;
+import com.rekeningrijden.billingservice.models.DataPoint;
 import com.rekeningrijden.billingservice.models.Invoice;
 import com.rekeningrijden.billingservice.reporitories.BillingRepository;
 import com.rekeningrijden.billingservice.reporitories.InvoiceRepository;
@@ -21,6 +22,7 @@ import java.math.BigDecimal;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @Service
@@ -42,6 +44,8 @@ public class BillingService {
     public String test() {
         // return this.billingRepository.findAll();
         return "test";
+    }
+
     public CalculatedPrice calculatePrice(List<RouteDTO> routes) {
         double totalDistance = 0;
         double totalVehiclePrice = 0;

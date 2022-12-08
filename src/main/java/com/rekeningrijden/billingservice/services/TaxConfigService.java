@@ -78,6 +78,8 @@ public class TaxConfigService {
         return basePrices;
     }
 
+    //region Messaging
+
     public List<String> updateBasePriceConfig(BasePriceDto basePriceDto) {
         // if baseprice already exists, update. else, create new
         return null;
@@ -100,4 +102,6 @@ public class TaxConfigService {
         System.out.println("I got a timetax! : " + timeTaxDto);
         return null;
     }
+
+    //endregion
 }

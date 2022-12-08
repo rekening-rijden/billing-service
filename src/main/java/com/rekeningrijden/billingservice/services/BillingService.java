@@ -114,40 +114,4 @@ public class BillingService {
     public ResponseEntity<?> getAllInvoices(String carId) {
         return invoiceRepository.findAllByCarId(carId);
     }
-
-//    public ResponseEntity<?> createInvoiceByRoutes(List<RouteDTO> routes) {
-//        // Check if routes is valid
-//        if (routes == null || routes.isEmpty()) {
-//            return ResponseEntity.badRequest().body("Routes is null or empty");
-//        }
-//
-//        // Get price per kilometer
-//        var pricePerKilometer = "0.15";
-//
-//        // Create invoice
-//        var invoice = new Invoice();
-//        invoice.setCarId(routes.get(0).getCarId());
-//        invoice.setPricePerKilometer(new BigDecimal(pricePerKilometer));
-//        invoice.setRoutes(routes);
-//        invoice.setTotalPrice(calculateTotalPrice(routes, new BigDecimal(pricePerKilometer)));
-//        invoice.setPaid(false);
-//        invoice.setPaymentId(null);
-//
-//
-//        invoiceRepository.save(invoice);
-//        return ResponseEntity.ok(invoice);
-//    }
-//
-//    public ResponseEntity<?> createInvoiceByCarId(String carId) {
-//        // Check if carId is valid
-//        if (carId == null || carId.isEmpty()) {
-//            return ResponseEntity.badRequest().body("CarId is null or empty");
-//        }
-//
-//        // Get Car information.
-//        var carInfo = getCarInfo(carId);
-//        if (carInfo == null) {
-//            return ResponseEntity.badRequest().body("CarId is not valid");
-//        }
-//    }
 }

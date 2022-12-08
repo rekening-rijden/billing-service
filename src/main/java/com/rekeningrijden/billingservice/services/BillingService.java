@@ -2,7 +2,6 @@ package com.rekeningrijden.billingservice.services;
 
 import be.woutschoovaerts.mollie.Client;
 import be.woutschoovaerts.mollie.ClientBuilder;
-import be.woutschoovaerts.mollie.data.common.Amount;
 import be.woutschoovaerts.mollie.data.payment.PaymentMethod;
 import be.woutschoovaerts.mollie.data.payment.PaymentRequest;
 import be.woutschoovaerts.mollie.data.payment.PaymentResponse;
@@ -12,22 +11,14 @@ import com.rekeningrijden.billingservice.models.CalculatedPrice;
 import com.rekeningrijden.billingservice.models.DTOs.PaymentInfoDTO;
 import com.rekeningrijden.billingservice.models.DTOs.RouteDTO;
 import com.rekeningrijden.billingservice.models.DataPoint;
-import com.rekeningrijden.billingservice.models.Invoice;
 import com.rekeningrijden.billingservice.reporitories.BillingRepository;
 import com.rekeningrijden.billingservice.reporitories.InvoiceRepository;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-
-import static com.fasterxml.jackson.databind.type.LogicalType.DateTime;
 
 @Service
 public class BillingService {

@@ -2,26 +2,27 @@ package com.rekeningrijden.billingservice.services;
 
 import be.woutschoovaerts.mollie.Client;
 import be.woutschoovaerts.mollie.ClientBuilder;
-import be.woutschoovaerts.mollie.data.common.Amount;
 import be.woutschoovaerts.mollie.data.payment.PaymentMethod;
 import be.woutschoovaerts.mollie.data.payment.PaymentRequest;
 import be.woutschoovaerts.mollie.data.payment.PaymentResponse;
 import be.woutschoovaerts.mollie.exception.MollieException;
+import com.rekeningrijden.billingservice.DistanceCalculator;
+import com.rekeningrijden.billingservice.models.CalculatedPrice;
 import com.rekeningrijden.billingservice.models.DTOs.PaymentInfoDTO;
 import com.rekeningrijden.billingservice.models.DTOs.RouteDTO;
+import com.rekeningrijden.billingservice.models.DTOs.TaxConfig.BasePriceDto;
+import com.rekeningrijden.billingservice.models.DTOs.TaxConfig.RoadTaxDto;
+import com.rekeningrijden.billingservice.models.DTOs.TaxConfig.TimeTaxDto;
 import com.rekeningrijden.billingservice.models.DataPoint;
-import com.rekeningrijden.billingservice.models.Invoice;
+import com.rekeningrijden.billingservice.models.Vehicle;
 import com.rekeningrijden.billingservice.reporitories.BillingRepository;
 import com.rekeningrijden.billingservice.reporitories.InvoiceRepository;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -31,8 +32,6 @@ public class BillingService {
     private final InvoiceRepository invoiceRepository;
     private final Client mollieClient;
     private final HttpClient httpClient;
-    private final List<PaymentMethod> paymentMethods = List.of(PaymentMethod.IDEAL, PaymentMethod.CREDIT_CARD);
-    private final DistanceCalculator distanceCalculator;
 
     public BillingService(BillingRepository billlingRepository, InvoiceRepository invoiceRepository) {
         this.billlingRepository = billlingRepository;
@@ -46,12 +45,23 @@ public class BillingService {
         return "test";
     }
 
-    public CalculatedPrice calculatePrice(List<RouteDTO> routes) {
-        double totalDistance = 0;
-        double totalVehiclePrice = 0;
-        double totalRoadPrice = 0;
-        double totalTimePrice = 0;
-        double totalPrice = 0;
+    public CalculatedPrice calculatePrice(List<RouteDTO> routes, List<BasePriceDto> basePrices, List<RoadTaxDto> roadTaxes, List<TimeTaxDto> timeTaxes, Vehicle vehicle) {
+        BigDecimal totalDistance = BigDecimal.valueOf(0);
+        BigDecimal totalVehiclePrice = BigDecimal.valueOf(0);
+        BigDecimal totalRoadPrice = BigDecimal.valueOf(0);
+        BigDecimal totalTimePrice = BigDecimal.valueOf(0);
+        BigDecimal totalPrice = BigDecimal.valueOf(0);
+
+        BigDecimal vehicleTaxPrice = null;
+        BigDecimal roadTaxPrice = null;
+        BigDecimal timeTaxPrice = null;
+
+        // set vehicleTaxPrice to the value of the vehicle from the basePrices list
+        vehicleTaxPrice = basePrices.stream()
+                .filter(basePrice -> basePrice.getEngineType().equals(vehicle.getFuelType()))
+                .findFirst()
+                .map(BasePriceDto::getSurTax)
+                .orElse(null);
 
         for(RouteDTO route: routes) {
             for (int i = 0; i < route.getCoords().size(); i++) {
@@ -59,24 +69,48 @@ public class BillingService {
                     DataPoint dataPoint = route.getCoords().get(i);
                     DataPoint nextDataPoint = route.getCoords().get(i + 1);
 
-                    double distance = distanceCalculator.calculateDistance(
-                            dataPoint,
-                            nextDataPoint);
+                    BigDecimal distance = BigDecimal.valueOf(DistanceCalculator.haversineDistance(
+                            dataPoint.getLat(),
+                            dataPoint.getLng(),
+                            nextDataPoint.getLat(),
+                            nextDataPoint.getLng()
+                    ));
 
-                    Date dateTimeDataPoint = dataPoint.getTimestamp();
-                    Date dateTimeNextDataPoint = nextDataPoint.getTimestamp();
+                    Calendar calendarDataPoint = Calendar.getInstance();
+                    calendarDataPoint.setTime(dataPoint.getTimestamp());
+                    int dayOfWeek = calendarDataPoint.get(Calendar.DAY_OF_WEEK);
 
-                    double vehiclePrice = distance * 0.1;
-                    double roadPrice = distance * 0.1;
-                    double timePrice = distance * 0.1;
+                    Calendar calendarNextDataPoint = Calendar.getInstance();
+                    calendarNextDataPoint.setTime(nextDataPoint.getTimestamp());
 
-                    totalDistance += distance;
-                    totalVehiclePrice += vehiclePrice;
-                    totalRoadPrice += roadPrice;
-                    totalTimePrice += timePrice;
+
+                    timeTaxPrice = timeTaxes.stream()
+                            .filter(timeTax -> timeTax.getDayOfWeek() == dayOfWeek )
+                            .filter(timeTax -> timeTax.getStartTime().getHour() == calendarDataPoint.get(Calendar.HOUR_OF_DAY))
+                            .map(TimeTaxDto::getSurTax)
+                            .findFirst()
+                            .orElse(null);
+
+                    roadTaxPrice = roadTaxes.stream()
+                            .filter(roadTax -> roadTax.getRoadType().equals(dataPoint.getRoadType()))
+                            .map(RoadTaxDto::getSurTax)
+                            .findFirst()
+                            .orElse(null);
+
+                    if(timeTaxPrice == null || roadTaxPrice == null || vehicleTaxPrice == null) {
+                        throw new RuntimeException("No tax prices found");
+                    }
+                    BigDecimal vehiclePrice = distance.multiply(vehicleTaxPrice);
+                    BigDecimal roadPrice = distance.multiply(roadTaxPrice);
+                    BigDecimal timePrice = distance.multiply(timeTaxPrice);
+
+                    totalDistance = totalDistance.add(distance);
+                    totalVehiclePrice = totalVehiclePrice.add(vehiclePrice);
+                    totalRoadPrice = totalRoadPrice.add(roadPrice);
+                    totalTimePrice = totalTimePrice.add(timePrice);
                 }
             }
-            totalPrice = totalVehiclePrice + totalRoadPrice + totalTimePrice;
+            totalPrice = totalVehiclePrice.add(totalRoadPrice).add(totalTimePrice);
         }
         return new CalculatedPrice(
                 totalDistance,

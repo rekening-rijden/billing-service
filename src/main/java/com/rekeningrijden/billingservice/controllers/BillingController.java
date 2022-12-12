@@ -1,15 +1,19 @@
 package com.rekeningrijden.billingservice.controllers;
 
+import com.rekeningrijden.billingservice.models.CalculatedPrice;
 import com.rekeningrijden.billingservice.models.DTOs.PaymentInfoDTO;
+import com.rekeningrijden.billingservice.models.DTOs.RouteDTO;
 import com.rekeningrijden.billingservice.models.DTOs.TaxConfig.BasePriceDto;
 import com.rekeningrijden.billingservice.models.DTOs.TaxConfig.RoadTaxDto;
 import com.rekeningrijden.billingservice.models.DTOs.TaxConfig.TimeTaxDto;
+import com.rekeningrijden.billingservice.models.Vehicle;
 import com.rekeningrijden.billingservice.services.BillingService;
 import com.rekeningrijden.billingservice.services.DvlaService;
 import com.rekeningrijden.billingservice.services.TaxConfigService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -49,11 +53,14 @@ public class BillingController {
 //        return this.billingService.createInvoiceByCarId(carId);
 //    }
     @PostMapping("/calculate")
-    public ResponseEntity<?> calculatePrice() throws IOException, InterruptedException {
+    public ResponseEntity<?> calculatePrice(@RequestBody List<RouteDTO> routes) throws IOException, InterruptedException {
         List<RoadTaxDto> roadTaxes = this.taxConfigService.getRoadTaxes();
         List<TimeTaxDto> timeTaxes = this.taxConfigService.getTimeTaxes();
         List<BasePriceDto> basePrices = this.taxConfigService.getBasePrices();
-        return null;
+        String registrationNumber = "AA19AAA"; //this.garageService.getRegistrationNumberByCarId(routes.get(0).getCoords().get(0).getVehicleId());
+        Vehicle vehicle = this.dvlaService.getVehicleByRegistrationNumber(registrationNumber);
+        CalculatedPrice price = this.billingService.calculatePrice(routes, basePrices, roadTaxes, timeTaxes, vehicle);
+        return ResponseEntity.ok(price);
     }
 
     @PostMapping()
@@ -63,7 +70,8 @@ public class BillingController {
 
     @GetMapping("/getvehicle/{registrationNumber}")
     public ResponseEntity<?> getVehicleByRegistrationNumber(@PathVariable String registrationNumber) throws IOException, InterruptedException {
-        return this.dvlaService.getVehicleByRegistrationNumber(registrationNumber);
+        Vehicle vehicle = this.dvlaService.getVehicleByRegistrationNumber(registrationNumber);
+        return ResponseEntity.ok(vehicle);
     }
 
 

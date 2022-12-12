@@ -1,6 +1,8 @@
 package com.rekeningrijden.billingservice.models.DTOs.TaxConfig;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -10,33 +12,12 @@ import java.math.BigDecimal;
 
 @Data
 @Entity
+@AllArgsConstructor
+@NoArgsConstructor
 public class RoadTaxDto {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
     private BigDecimal surTax;
     private String roadType;
-
-    public RoadTaxDto() {}
-
-    public RoadTaxDto(BigDecimal surTax, String roadType) {
-        this.surTax = surTax;
-        this.roadType = roadType;
-    }
-
-    public BigDecimal getSurTax() {
-        return surTax;
-    }
-
-    public void setSurTax(BigDecimal surTax) {
-        this.surTax = surTax;
-    }
-
-    public String getRoadType() {
-        return roadType;
-    }
-
-    public void setRoadType(String roadType) {
-        this.roadType = roadType;
-    }
 }

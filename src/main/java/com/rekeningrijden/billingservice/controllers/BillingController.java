@@ -33,11 +33,6 @@ public class BillingController {
         this.taxConfigService = taxConfigService;
     }
 
-    @PostMapping("/createpayment")
-    public ResponseEntity<?> createPaymentLink(@RequestBody PaymentInfoDTO paymentInfoDTO) {
-        return this.billingService.createPaymentLink(paymentInfoDTO);
-    }
-
     @GetMapping("/invoice/{carId}")
     public ResponseEntity<?> getAllInvoicesByCarId(@PathVariable String carId) {
         return this.billingService.getAllInvoices(carId);
@@ -53,13 +48,13 @@ public class BillingController {
 //        return this.billingService.createInvoiceByCarId(carId);
 //    }
     @PostMapping("/calculate")
-    public ResponseEntity<?> calculatePrice(@RequestBody List<RouteDTO> routes) throws IOException, InterruptedException {
+    public ResponseEntity<?> calculatePrice(@RequestBody RouteDTO route) throws Exception {
         List<RoadTaxDto> roadTaxes = this.taxConfigService.getRoadTaxes();
         List<TimeTaxDto> timeTaxes = this.taxConfigService.getTimeTaxes();
         List<BasePriceDto> basePrices = this.taxConfigService.getBasePrices();
         String registrationNumber = "AA19AAA"; //this.garageService.getRegistrationNumberByCarId(routes.get(0).getCoords().get(0).getVehicleId());
         Vehicle vehicle = this.dvlaService.getVehicleByRegistrationNumber(registrationNumber);
-        CalculatedPrice price = this.billingService.calculatePrice(routes, basePrices, roadTaxes, timeTaxes, vehicle);
+        CalculatedPrice price = this.billingService.calculatePrice(route, basePrices, roadTaxes, timeTaxes, vehicle);
         return ResponseEntity.ok(price);
     }
 

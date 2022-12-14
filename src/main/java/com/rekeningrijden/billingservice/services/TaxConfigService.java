@@ -43,45 +43,55 @@ public class TaxConfigService {
     }
 
     public List<RoadTaxDto> getRoadTaxes() throws IOException, InterruptedException {
-        HttpRequest getRequest = HttpRequest.newBuilder()
-                .uri(URI.create(roadTaxUrl))
-                .header("Content-Type", "application/json")
-                .header("accept", "application/json")
-                .build();
-
-        String jsonResponse = httpClient.send(getRequest, HttpResponse.BodyHandlers.ofString()).body();
-        List<RoadTaxDto> roadTaxes = Arrays.stream(objectMapper.readValue(jsonResponse, RoadTaxDto[].class)).toList();
-        return roadTaxes;
+//        HttpRequest getRequest = HttpRequest.newBuilder()
+//                .uri(URI.create(roadTaxUrl))
+//                .header("Content-Type", "application/json")
+//                .header("accept", "application/json")
+//                .build();
+//
+//        String jsonResponse = httpClient.send(getRequest, HttpResponse.BodyHandlers.ofString()).body();
+//        List<RoadTaxDto> roadTaxes = Arrays.stream(objectMapper.readValue(jsonResponse, RoadTaxDto[].class)).toList();
+//        return roadTaxes;
+        return roadTaxRepository.findAll();
     }
 
     public List<TimeTaxDto> getTimeTaxes() throws IOException, InterruptedException {
-        HttpRequest getRequest = HttpRequest.newBuilder()
-                .uri(URI.create(timeTaxUrl))
-                .header("Content-Type", "application/json")
-                .header("accept", "application/json")
-                .build();
-
-        String jsonResponse = httpClient.send(getRequest, HttpResponse.BodyHandlers.ofString()).body();
-        List<TimeTaxDto> timeTaxes = Arrays.stream(objectMapper.readValue(jsonResponse, TimeTaxDto[].class)).toList();
-        return timeTaxes;
+//        HttpRequest getRequest = HttpRequest.newBuilder()
+//                .uri(URI.create(timeTaxUrl))
+//                .header("Content-Type", "application/json")
+//                .header("accept", "application/json")
+//                .build();
+//
+//        String jsonResponse = httpClient.send(getRequest, HttpResponse.BodyHandlers.ofString()).body();
+//        List<TimeTaxDto> timeTaxes = Arrays.stream(objectMapper.readValue(jsonResponse, TimeTaxDto[].class)).toList();
+//        return timeTaxes;
+        return timeTaxRepository.findAll();
     }
 
     public List<BasePriceDto> getBasePrices() throws IOException, InterruptedException {
-        HttpRequest getRequest = HttpRequest.newBuilder()
-                .uri(URI.create(basePriceUrl))
-                .header("Content-Type", "application/json")
-                .header("accept", "application/json")
-                .build();
-
-        String jsonResponse = httpClient.send(getRequest, HttpResponse.BodyHandlers.ofString()).body();
-        List<BasePriceDto> basePrices = Arrays.stream(objectMapper.readValue(jsonResponse, BasePriceDto[].class)).toList();
-        return basePrices;
+//        HttpRequest getRequest = HttpRequest.newBuilder()
+//                .uri(URI.create(basePriceUrl))
+//                .header("Content-Type", "application/json")
+//                .header("accept", "application/json")
+//                .build();
+//
+//        String jsonResponse = httpClient.send(getRequest, HttpResponse.BodyHandlers.ofString()).body();
+//        List<BasePriceDto> basePrices = Arrays.stream(objectMapper.readValue(jsonResponse, BasePriceDto[].class)).toList();
+//        return basePrices;
+        return basePriceRepository.findAll();
     }
 
     //region Messaging
 
-    public List<String> updateBasePriceConfig(BasePriceDto basePriceDto) {
+    public BasePriceDto updateBasePriceConfig(BasePriceDto basePriceDto) {
         // if baseprice already exists, update. else, create new
+        if (!basePriceRepository.existsByEngineType(basePriceDto.getEngineType())) {
+            basePriceRepository.save(basePriceDto);
+        } else {
+            BasePriceDto existingBasePrice = basePriceRepository.findByEngineType(basePriceDto.getEngineType());
+            existingBasePrice.setSurTax(basePriceDto.getSurTax());
+            return basePriceRepository.save(existingBasePrice);
+        }
         return null;
     }
 

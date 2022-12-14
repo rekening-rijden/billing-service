@@ -13,4 +13,5 @@ public class CalculatedPrice {
     private BigDecimal totalRoutePrice;
     private BigDecimal totalTimePrice;
     private BigDecimal totalPrice;
+    private String paymentLink;
 }

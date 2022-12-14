@@ -6,6 +6,7 @@ import com.rekeningrijden.billingservice.models.DTOs.RouteDTO;
 import com.rekeningrijden.billingservice.models.DTOs.TaxConfig.BasePriceDto;
 import com.rekeningrijden.billingservice.models.DTOs.TaxConfig.RoadTaxDto;
 import com.rekeningrijden.billingservice.models.DTOs.TaxConfig.TimeTaxDto;
+import com.rekeningrijden.billingservice.models.Invoice;
 import com.rekeningrijden.billingservice.models.Vehicle;
 import com.rekeningrijden.billingservice.services.BillingService;
 import com.rekeningrijden.billingservice.services.DvlaService;
@@ -38,15 +39,6 @@ public class BillingController {
         return this.billingService.getAllInvoices(carId);
     }
 
-//    @PostMapping("/invoice")
-//    public ResponseEntity<?> createInvoiceByRoutes(@RequestBody List<RouteDTO> routes) {
-//        return this.billingService.createInvoiceByRoutes(routes);
-//    }
-//
-//    @PostMapping("/invoice/{carId}")
-//    public ResponseEntity<?> createInvoiceByCarId(@PathVariable String carId) {
-//        return this.billingService.createInvoiceByCarId(carId);
-//    }
     @PostMapping("/calculate")
     public ResponseEntity<?> calculatePrice(@RequestBody RouteDTO route) throws Exception {
         List<RoadTaxDto> roadTaxes = this.taxConfigService.getRoadTaxes();
@@ -58,21 +50,15 @@ public class BillingController {
         return ResponseEntity.ok(price);
     }
 
-    @PostMapping("/teringzooi")
-    public BasePriceDto shitzooi(@RequestBody BasePriceDto basePriceDto) throws IOException {
-        return basePriceDto;
-    }
-
-    @PostMapping()
-    public ResponseEntity<?> getAllInvoices() {
-        return ResponseEntity.ok("test");
-    }
-
     @GetMapping("/getvehicle/{registrationNumber}")
     public ResponseEntity<?> getVehicleByRegistrationNumber(@PathVariable String registrationNumber) throws IOException, InterruptedException {
         Vehicle vehicle = this.dvlaService.getVehicleByRegistrationNumber(registrationNumber);
         return ResponseEntity.ok(vehicle);
     }
 
-
+    @PostMapping("/createinvoice")
+    public ResponseEntity<?> createInvoice(@RequestBody Invoice _invoice) {
+        Invoice invoice = this.billingService.createInvoice(_invoice);
+        return ResponseEntity.ok(invoice);
+    }
 }

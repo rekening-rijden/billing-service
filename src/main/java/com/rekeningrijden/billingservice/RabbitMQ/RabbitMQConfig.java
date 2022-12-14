@@ -47,6 +47,13 @@ public class RabbitMQConfig {
     private String roadTaxRoutingKey;
     //endregion
 
+    //region Invoice
+    @Value("${spring.rabbitmq.queue.invoice}")
+    private String invoiceQueue;
+    @Value("${spring.rabbitmq.routingkey.invoice}")
+    private String invoiceRoutingKey;
+    //endregion
+
     @Bean
     Queue timeTaxQueue() {
         return new Queue(queue, true);
@@ -61,6 +68,12 @@ public class RabbitMQConfig {
     Queue roadTaxQueue() {
         return new Queue(roadTaxQueue, true);
     }
+
+    @Bean
+    Queue invoiceQueue() {
+        return new Queue(invoiceQueue, true);
+    }
+
 
     @Bean
     Exchange myExchange() {
@@ -91,6 +104,15 @@ public class RabbitMQConfig {
                 .bind(roadTaxQueue())
                 .to(myExchange())
                 .with(roadTaxRoutingKey)
+                .noargs();
+    }
+
+    @Bean
+    Binding invoiceBinding() {
+        return BindingBuilder
+                .bind(invoiceQueue())
+                .to(myExchange())
+                .with(invoiceRoutingKey)
                 .noargs();
     }
     @Bean

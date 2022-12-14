@@ -15,6 +15,7 @@ import com.rekeningrijden.billingservice.models.DTOs.TaxConfig.BasePriceDto;
 import com.rekeningrijden.billingservice.models.DTOs.TaxConfig.RoadTaxDto;
 import com.rekeningrijden.billingservice.models.DTOs.TaxConfig.TimeTaxDto;
 import com.rekeningrijden.billingservice.models.DataPoint;
+import com.rekeningrijden.billingservice.models.Invoice;
 import com.rekeningrijden.billingservice.models.Vehicle;
 import com.rekeningrijden.billingservice.reporitories.BillingRepository;
 import com.rekeningrijden.billingservice.reporitories.InvoiceRepository;
@@ -164,6 +165,10 @@ public class BillingService {
 
     public ResponseEntity<?> getAllInvoices(String carId) {
         return invoiceRepository.findAllByCarId(carId);
+    }
+
+    public Invoice createInvoice(Invoice invoice) {
+        return invoiceRepository.save(invoice);
     }
 
 //    public ResponseEntity<?> createInvoiceByRoutes(List<RouteDTO> routes) {

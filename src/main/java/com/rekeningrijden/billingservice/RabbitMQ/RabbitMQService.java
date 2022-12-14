@@ -6,6 +6,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rekeningrijden.billingservice.models.DTOs.TaxConfig.BasePriceDto;
 import com.rekeningrijden.billingservice.models.DTOs.TaxConfig.RoadTaxDto;
 import com.rekeningrijden.billingservice.models.DTOs.TaxConfig.TimeTaxDto;
+import com.rekeningrijden.billingservice.models.Invoice;
+import com.rekeningrijden.billingservice.reporitories.InvoiceRepository;
 import com.rekeningrijden.billingservice.services.TaxConfigService;
 import org.hibernate.mapping.Any;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -24,6 +26,8 @@ public class RabbitMQService implements RabbitListenerConfigurer {
     ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
     @Autowired
     TaxConfigService taxConfigService;
+    @Autowired
+    private InvoiceRepository invoiceRepository;
 
     @Override
     public void configureRabbitListeners(RabbitListenerEndpointRegistrar rabbitListenerEndpointRegistrar) {
@@ -51,5 +55,13 @@ public class RabbitMQService implements RabbitListenerConfigurer {
         System.out.println("Received timetax config: " + timeTaxDto);
         TimeTaxDto timetax = objectMapper.readValue(timeTaxDto, TimeTaxDto.class);
         return taxConfigService.updateTimeTaxConfig(timetax);
+    }
+
+    @RabbitListener(queues = "${spring.rabbitmq.queue.invoice}")
+    @SendTo("${spring.rabbitmq.queue.invoice}")
+    public Invoice createInvoice(String invoice) throws JsonProcessingException {
+        System.out.println("Received invoice: " + invoice);
+        Invoice invoice1 = objectMapper.readValue(invoice, Invoice.class);
+        return invoiceRepository.save(invoice1);
     }
 }

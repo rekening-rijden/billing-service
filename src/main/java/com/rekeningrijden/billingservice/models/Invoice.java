@@ -1,9 +1,7 @@
 package com.rekeningrijden.billingservice.models;
 
 import com.rekeningrijden.billingservice.models.DTOs.RouteDTO;
-import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.springframework.util.RouteMatcher;
 
 import javax.persistence.*;
@@ -15,13 +13,16 @@ import java.util.List;
 @Setter
 @Data
 @Entity
+@AllArgsConstructor
+@NoArgsConstructor
 public class Invoice {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
+    private String paymentLink;
     private String carId;
     private Date date;
-    private double amount;
+    private double price;
     private String description;
     private BigDecimal pricePerKilometer;
 }

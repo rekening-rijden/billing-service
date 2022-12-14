@@ -96,21 +96,23 @@ public class TaxConfigService {
     }
 
     public List<String> updateRoadTaxConfig(RoadTaxDto roadTaxDto) {
-//        if(count(roadTaxDto.getRoadType()) == 0) {
-//            // add to database
-//        } else {
-//            // update in database
-//        }
+        // if roadtax already exists, update. else, create new
+        if (!roadTaxRepository.existsByRoadType(roadTaxDto.getRoadType())) {
+            roadTaxRepository.save(roadTaxDto);
+        } else {
+            RoadTaxDto existingRoadTax = roadTaxRepository.findByRoadType(roadTaxDto.getRoadType());
+            existingRoadTax.setSurTax(roadTaxDto.getSurTax());
+            roadTaxRepository.save(existingRoadTax);
+        }
         return null;
     }
 
-    public List<String> updateTimeTaxConfig(TimeTaxDto timeTaxDto) {
+    public TimeTaxDto updateTimeTaxConfig(TimeTaxDto timeTaxDto) {
         TimeTaxDto timeTaxToUpdate = this.timeTaxRepository.findById(timeTaxDto.getId()).orElseThrow();
         timeTaxToUpdate.setSurTax(timeTaxDto.getSurTax());
-        this.timeTaxRepository.save(timeTaxToUpdate);
-        // update in database
         System.out.println("I got a timetax! : " + timeTaxDto);
-        return null;
+        return this.timeTaxRepository.save(timeTaxToUpdate);
+        // update in database
     }
 
     //endregion

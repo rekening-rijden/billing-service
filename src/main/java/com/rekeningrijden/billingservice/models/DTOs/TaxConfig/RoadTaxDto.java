@@ -11,13 +11,11 @@ import javax.persistence.Id;
 import java.math.BigDecimal;
 
 @Data
-@Entity
 @AllArgsConstructor
 @NoArgsConstructor
+@Entity
 public class RoadTaxDto {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
     private BigDecimal surTax;
+    @Id
     private String roadType;
 }

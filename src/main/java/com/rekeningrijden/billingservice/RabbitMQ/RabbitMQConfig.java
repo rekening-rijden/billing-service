@@ -27,7 +27,7 @@ public class RabbitMQConfig {
     private String exchange;
 
     //region TimeTax
-    @Value("${spring.rabbitmq.queue.taxconfig}")
+    @Value("${spring.rabbitmq.queue.timetax}")
     private String queue;
     @Value("${spring.rabbitmq.routingkey.timetax}")
     private String routingKey;
@@ -40,9 +40,15 @@ public class RabbitMQConfig {
     private String basePriceRoutingKey;
     //endregion
 
+    //region RoadTax
+    @Value("${spring.rabbitmq.queue.roadtax}")
+    private String roadTaxQueue;
+    @Value("${spring.rabbitmq.routingkey.roadtax}")
+    private String roadTaxRoutingKey;
+    //endregion
 
     @Bean
-    Queue queue() {
+    Queue timeTaxQueue() {
         return new Queue(queue, true);
     }
 
@@ -52,14 +58,19 @@ public class RabbitMQConfig {
     }
 
     @Bean
+    Queue roadTaxQueue() {
+        return new Queue(roadTaxQueue, true);
+    }
+
+    @Bean
     Exchange myExchange() {
         return ExchangeBuilder.topicExchange(exchange).durable(true).build();
     }
 
     @Bean
-    Binding binding() {
+    Binding timeTaxBinding() {
         return BindingBuilder
-                .bind(queue())
+                .bind(timeTaxQueue())
                 .to(myExchange())
                 .with(routingKey)
                 .noargs();
@@ -71,6 +82,15 @@ public class RabbitMQConfig {
                 .bind(basePriceQueue())
                 .to(myExchange())
                 .with(basePriceRoutingKey)
+                .noargs();
+    }
+
+    @Bean
+    Binding roadTaxBinding() {
+        return BindingBuilder
+                .bind(roadTaxQueue())
+                .to(myExchange())
+                .with(roadTaxRoutingKey)
                 .noargs();
     }
     @Bean

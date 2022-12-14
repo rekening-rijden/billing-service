@@ -78,5 +78,4 @@ public class DistanceCalculator {
         // Return the distance in kilometers
         return 6371 * c;
     }
-
 }

@@ -58,6 +58,11 @@ public class BillingController {
         return ResponseEntity.ok(price);
     }
 
+    @PostMapping("/teringzooi")
+    public BasePriceDto shitzooi(@RequestBody BasePriceDto basePriceDto) throws IOException {
+        return basePriceDto;
+    }
+
     @PostMapping()
     public ResponseEntity<?> getAllInvoices() {
         return ResponseEntity.ok("test");

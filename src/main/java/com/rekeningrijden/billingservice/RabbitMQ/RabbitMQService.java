@@ -59,9 +59,9 @@ public class RabbitMQService implements RabbitListenerConfigurer {
 
     @RabbitListener(queues = "${spring.rabbitmq.queue.invoice}")
     @SendTo("${spring.rabbitmq.queue.invoice}")
-    public Invoice createInvoice(String invoice) throws JsonProcessingException {
+    public void createInvoice(String invoice) throws JsonProcessingException {
         System.out.println("Received invoice: " + invoice);
         Invoice invoice1 = objectMapper.readValue(invoice, Invoice.class);
-        return invoiceRepository.save(invoice1);
+        invoiceRepository.save(invoice1);
     }
 }

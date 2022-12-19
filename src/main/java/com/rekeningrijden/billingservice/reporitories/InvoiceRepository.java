@@ -4,7 +4,9 @@ import com.rekeningrijden.billingservice.models.Invoice;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.http.ResponseEntity;
 
+import java.util.List;
+
 public interface InvoiceRepository extends JpaRepository<Invoice, Integer> {
 
-    ResponseEntity<?> findAllByCarId(String carId);
+    List<Invoice> findAllByCarId(int carId);
 }

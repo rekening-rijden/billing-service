@@ -10,7 +10,7 @@ import java.math.BigDecimal;
 public class CalculatedPrice {
     private BigDecimal totalDistance;
     private BigDecimal totalVehiclePrice;
-    private BigDecimal totalRoutePrice;
+    private BigDecimal totalRoadPrice;
     private BigDecimal totalTimePrice;
     private BigDecimal totalPrice;
     private String paymentLink;

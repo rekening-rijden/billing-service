@@ -15,6 +15,7 @@ import com.rekeningrijden.billingservice.models.DTOs.TaxConfig.BasePriceDto;
 import com.rekeningrijden.billingservice.models.DTOs.TaxConfig.RoadTaxDto;
 import com.rekeningrijden.billingservice.models.DTOs.TaxConfig.TimeTaxDto;
 import com.rekeningrijden.billingservice.models.DataPoint;
+import com.rekeningrijden.billingservice.models.Invoice;
 import com.rekeningrijden.billingservice.models.Vehicle;
 import com.rekeningrijden.billingservice.reporitories.BillingRepository;
 import com.rekeningrijden.billingservice.reporitories.InvoiceRepository;
@@ -22,6 +23,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.net.http.HttpClient;
 import java.util.Calendar;
 import java.util.Date;
@@ -32,12 +34,10 @@ public class BillingService {
     private final BillingRepository billlingRepository;
     private final InvoiceRepository invoiceRepository;
     private final Client mollieClient;
-    private final HttpClient httpClient;
 
     public BillingService(BillingRepository billlingRepository, InvoiceRepository invoiceRepository) {
         this.billlingRepository = billlingRepository;
         this.invoiceRepository = invoiceRepository;
-        this.httpClient = HttpClient.newHttpClient();
         this.mollieClient = new ClientBuilder().withApiKey("test_HUS9ADTxAkq5nqAB3RGWxrSaxj55uC").build();
     }
 
@@ -109,15 +109,16 @@ public class BillingService {
 
 
             totalPrice = totalVehiclePrice.add(totalRoadPrice).add(totalTimePrice);
-            paymentLink = this.createPaymentLink(
-                    new PaymentInfoDTO("Invoice for route: " + route.getCoords().get(0).getRouteId(),
-                            new Amount(
-                                    "GBP",
-                                    totalPrice
-                            )
-                    )
-            );
         }
+        totalPrice = totalPrice.setScale(2, RoundingMode.HALF_UP);
+        paymentLink = this.createPaymentLink(
+                new PaymentInfoDTO("Invoice for route: " + route.getCoords().get(0).getRouteId(),
+                        new Amount(
+                                "GBP",
+                                totalPrice
+                        )
+                )
+        );
         return new CalculatedPrice(
                 totalDistance,
                 totalVehiclePrice,
@@ -159,46 +160,29 @@ public class BillingService {
 
     public ResponseEntity<?> getPaymentById(String paymentId) throws MollieException {
         PaymentResponse paymentResponse = this.mollieClient.payments().getPayment(paymentId);
-        return null;
+        return ResponseEntity.ok(paymentResponse);
     }
 
-    public ResponseEntity<?> getAllInvoices(String carId) {
-        return invoiceRepository.findAllByCarId(carId);
+    public ResponseEntity<?> getAllInvoices(int carId) {
+        List<Invoice> invoices = invoiceRepository.findAllByCarId(carId);
+        return ResponseEntity.ok(invoices);
     }
 
-//    public ResponseEntity<?> createInvoiceByRoutes(List<RouteDTO> routes) {
-//        // Check if routes is valid
-//        if (routes == null || routes.isEmpty()) {
-//            return ResponseEntity.badRequest().body("Routes is null or empty");
-//        }
-//
-//        // Get price per kilometer
-//        var pricePerKilometer = "0.15";
-//
-//        // Create invoice
-//        var invoice = new Invoice();
-//        invoice.setCarId(routes.get(0).getCarId());
-//        invoice.setPricePerKilometer(new BigDecimal(pricePerKilometer));
-//        invoice.setRoutes(routes);
-//        invoice.setTotalPrice(calculateTotalPrice(routes, new BigDecimal(pricePerKilometer)));
-//        invoice.setPaid(false);
-//        invoice.setPaymentId(null);
-//
-//
-//        invoiceRepository.save(invoice);
-//        return ResponseEntity.ok(invoice);
-//    }
-//
-//    public ResponseEntity<?> createInvoiceByCarId(String carId) {
-//        // Check if carId is valid
-//        if (carId == null || carId.isEmpty()) {
-//            return ResponseEntity.badRequest().body("CarId is null or empty");
-//        }
-//
-//        // Get Car information.
-//        var carInfo = getCarInfo(carId);
-//        if (carInfo == null) {
-//            return ResponseEntity.badRequest().body("CarId is not valid");
-//        }
-//    }
+    public Invoice createInvoice(int carId, CalculatedPrice calculatedPrice) {
+        Invoice invoice = new Invoice();
+        invoice.setCarId(carId);
+        invoice.setDate(new Date());
+        invoice.setTotalDistance(calculatedPrice.getTotalDistance());
+        invoice.setTotalVehiclePrice(calculatedPrice.getTotalVehiclePrice());
+        invoice.setTotalRoadPrice(calculatedPrice.getTotalRoadPrice());
+        invoice.setTotalTimePrice(calculatedPrice.getTotalTimePrice());
+        invoice.setTotalPrice(calculatedPrice.getTotalPrice());
+        invoice.setPaymentLink(calculatedPrice.getPaymentLink());
+        return invoiceRepository.save(invoice);
+    }
+
+    public Invoice getInvoiceById(int invoiceId) {
+        Invoice invoice = this.invoiceRepository.findById(invoiceId).orElse(null);
+        return invoice;
+    }
 }

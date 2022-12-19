@@ -19,9 +19,13 @@ public class Invoice {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
-    private String carId;
+    private int carId;
     private Date date;
-    private double amount;
     private String description;
-    private BigDecimal pricePerKilometer;
+    private BigDecimal totalDistance;
+    private BigDecimal totalVehiclePrice;
+    private BigDecimal totalRoadPrice;
+    private BigDecimal totalTimePrice;
+    private BigDecimal totalPrice;
+    private String paymentLink;
 }

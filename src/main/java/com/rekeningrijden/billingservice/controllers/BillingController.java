@@ -6,6 +6,7 @@ import com.rekeningrijden.billingservice.models.DTOs.RouteDTO;
 import com.rekeningrijden.billingservice.models.DTOs.TaxConfig.BasePriceDto;
 import com.rekeningrijden.billingservice.models.DTOs.TaxConfig.RoadTaxDto;
 import com.rekeningrijden.billingservice.models.DTOs.TaxConfig.TimeTaxDto;
+import com.rekeningrijden.billingservice.models.Invoice;
 import com.rekeningrijden.billingservice.models.Vehicle;
 import com.rekeningrijden.billingservice.services.BillingService;
 import com.rekeningrijden.billingservice.services.DvlaService;
@@ -14,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.List;
 
 @RestController
@@ -33,39 +35,26 @@ public class BillingController {
         this.taxConfigService = taxConfigService;
     }
 
-    @GetMapping("/invoice/{carId}")
-    public ResponseEntity<?> getAllInvoicesByCarId(@PathVariable String carId) {
+    @GetMapping("/invoice/getall/{carId}")
+    public ResponseEntity<?> getAllInvoicesByCarId(@PathVariable int carId) {
         return this.billingService.getAllInvoices(carId);
     }
 
-//    @PostMapping("/invoice")
-//    public ResponseEntity<?> createInvoiceByRoutes(@RequestBody List<RouteDTO> routes) {
-//        return this.billingService.createInvoiceByRoutes(routes);
-//    }
-//
-//    @PostMapping("/invoice/{carId}")
-//    public ResponseEntity<?> createInvoiceByCarId(@PathVariable String carId) {
-//        return this.billingService.createInvoiceByCarId(carId);
-//    }
+    @GetMapping("/invoice/{invoiceId}")
+    public ResponseEntity<?> getInvoiceById(@PathVariable int invoiceId) {
+        return ResponseEntity.ok(this.billingService.getInvoiceById(invoiceId));
+    }
     @PostMapping("/calculate")
     public ResponseEntity<?> calculatePrice(@RequestBody RouteDTO route) throws Exception {
         List<RoadTaxDto> roadTaxes = this.taxConfigService.getRoadTaxes();
         List<TimeTaxDto> timeTaxes = this.taxConfigService.getTimeTaxes();
         List<BasePriceDto> basePrices = this.taxConfigService.getBasePrices();
+        int vehicleId = route.getCoords().get(0).getVehicleId();
         String registrationNumber = "AA19AAA"; //this.garageService.getRegistrationNumberByCarId(routes.get(0).getCoords().get(0).getVehicleId());
         Vehicle vehicle = this.dvlaService.getVehicleByRegistrationNumber(registrationNumber);
         CalculatedPrice price = this.billingService.calculatePrice(route, basePrices, roadTaxes, timeTaxes, vehicle);
-        return ResponseEntity.ok(price);
-    }
-
-    @PostMapping("/teringzooi")
-    public BasePriceDto shitzooi(@RequestBody BasePriceDto basePriceDto) throws IOException {
-        return basePriceDto;
-    }
-
-    @PostMapping()
-    public ResponseEntity<?> getAllInvoices() {
-        return ResponseEntity.ok("test");
+        Invoice invoice = this.billingService.createInvoice(vehicleId, price);
+        return ResponseEntity.ok(invoice);
     }
 
     @GetMapping("/getvehicle/{registrationNumber}")

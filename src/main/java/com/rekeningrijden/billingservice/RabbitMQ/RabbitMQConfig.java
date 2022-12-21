@@ -47,6 +47,18 @@ public class RabbitMQConfig {
     private String roadTaxRoutingKey;
     //endregion
 
+    //region Routes
+    @Value("${spring.rabbitmq.queue.routes}")
+    private String routesQueue;
+    @Value("${spring.rabbitmq.routingkey.routes}")
+    private String routesRoutingKey;
+    //endregion
+
+    @Bean
+    Queue routeQueue() {
+        return new Queue(routesQueue, false, false, false, null);
+    }
+
     @Bean
     Queue timeTaxQueue() {
         return new Queue(queue, true);
@@ -65,6 +77,11 @@ public class RabbitMQConfig {
     @Bean
     Exchange myExchange() {
         return ExchangeBuilder.topicExchange(exchange).durable(true).build();
+    }
+
+    @Bean
+    Binding routeBinding() {
+        return BindingBuilder.bind(routeQueue()).to(myExchange()).with(routesRoutingKey).noargs();
     }
 
     @Bean

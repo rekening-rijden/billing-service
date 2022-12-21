@@ -3,7 +3,6 @@ package com.rekeningrijden.billingservice.services;
 import be.woutschoovaerts.mollie.Client;
 import be.woutschoovaerts.mollie.ClientBuilder;
 import be.woutschoovaerts.mollie.data.common.Amount;
-import be.woutschoovaerts.mollie.data.payment.PaymentMethod;
 import be.woutschoovaerts.mollie.data.payment.PaymentRequest;
 import be.woutschoovaerts.mollie.data.payment.PaymentResponse;
 import be.woutschoovaerts.mollie.exception.MollieException;
@@ -17,26 +16,22 @@ import com.rekeningrijden.billingservice.models.DTOs.TaxConfig.TimeTaxDto;
 import com.rekeningrijden.billingservice.models.DataPoint;
 import com.rekeningrijden.billingservice.models.Invoice;
 import com.rekeningrijden.billingservice.models.Vehicle;
-import com.rekeningrijden.billingservice.reporitories.BillingRepository;
 import com.rekeningrijden.billingservice.reporitories.InvoiceRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.net.http.HttpClient;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
 @Service
 public class BillingService {
-    private final BillingRepository billlingRepository;
     private final InvoiceRepository invoiceRepository;
     private final Client mollieClient;
 
-    public BillingService(BillingRepository billlingRepository, InvoiceRepository invoiceRepository) {
-        this.billlingRepository = billlingRepository;
+    public BillingService(InvoiceRepository invoiceRepository) {
         this.invoiceRepository = invoiceRepository;
         this.mollieClient = new ClientBuilder().withApiKey("test_HUS9ADTxAkq5nqAB3RGWxrSaxj55uC").build();
     }
@@ -95,7 +90,7 @@ public class BillingService {
                         .orElse(null);
 
                 if (timeTaxPrice == null || roadTaxPrice == null || vehicleTaxPrice == null) {
-                    throw new RuntimeException("No tax prices found");
+                    throw new Exception("No tax prices found");
                 }
                 BigDecimal vehiclePrice = distance.multiply(vehicleTaxPrice);
                 BigDecimal roadPrice = distance.multiply(roadTaxPrice);
@@ -146,7 +141,7 @@ public class BillingService {
             PaymentRequest paymentRequest = new PaymentRequest();
             paymentRequest.setAmount(paymentInfoDTO.getAmount());
             paymentRequest.setDescription(paymentInfoDTO.getDescription());
-            paymentRequest.setRedirectUrl(java.util.Optional.of("https://www.google.com/"));
+            paymentRequest.setRedirectUrl(java.util.Optional.of("http://localhost:4200/thankyou"));
             PaymentResponse paymentResponse = this.mollieClient.payments().createPayment(paymentRequest);
                 System.out.println(paymentResponse);
                 System.out.println(paymentResponse.getLinks().getCheckout().getHref());

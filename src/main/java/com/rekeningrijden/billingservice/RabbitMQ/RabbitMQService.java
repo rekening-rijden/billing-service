@@ -13,6 +13,7 @@ import com.rekeningrijden.billingservice.models.Invoice;
 import com.rekeningrijden.billingservice.models.Vehicle;
 import com.rekeningrijden.billingservice.services.BillingService;
 import com.rekeningrijden.billingservice.services.DvlaService;
+import com.rekeningrijden.billingservice.services.GarageService;
 import com.rekeningrijden.billingservice.services.TaxConfigService;
 import org.hibernate.mapping.Any;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -37,6 +38,8 @@ public class RabbitMQService implements RabbitListenerConfigurer {
     BillingService billingService;
     @Autowired
     DvlaService dvlaService;
+    @Autowired
+    GarageService garageService;
 
     @Override
     public void configureRabbitListeners(RabbitListenerEndpointRegistrar rabbitListenerEndpointRegistrar) {
@@ -66,19 +69,19 @@ public class RabbitMQService implements RabbitListenerConfigurer {
         return taxConfigService.updateTimeTaxConfig(timetax);
     }
 
-    @RabbitListener(queues = "${spring.rabbitmq.queue.routes}")
-    @SendTo("${spring.rabbitmq.queue.routes}")
-    public void consumeRoute(String _route) throws Exception {
-        Gson gson = new Gson();
-        System.out.println("Received route: " + _route);
-        RouteDTO route = gson.fromJson(_route, RouteDTO.class);
-        List<RoadTaxDto> roadTaxes = this.taxConfigService.getRoadTaxes();
-        List<TimeTaxDto> timeTaxes = this.taxConfigService.getTimeTaxes();
-        List<BasePriceDto> basePrices = this.taxConfigService.getBasePrices();
-        int vehicleId = route.getCoords().get(0).getVehicleId();
-        String registrationNumber = "AA19AAA";//garageService.getRegistrationNumber(vehicleId);
-        Vehicle vehicle = this.dvlaService.getVehicleByRegistrationNumber(registrationNumber);
-        CalculatedPrice price = billingService.calculatePrice(route, basePrices, roadTaxes, timeTaxes, vehicle);
-        this.billingService.createInvoice(vehicleId, price);
-    }
+//    @RabbitListener(queues = "${spring.rabbitmq.queue.routes}")
+//    @SendTo("${spring.rabbitmq.queue.routes}")
+//    public void consumeRoute(String _route) throws Exception {
+//        Gson gson = new Gson();
+//        System.out.println("Received route: " + _route);
+//        RouteDTO route = gson.fromJson(_route, RouteDTO.class);
+//        List<RoadTaxDto> roadTaxes = this.taxConfigService.getRoadTaxes();
+//        List<TimeTaxDto> timeTaxes = this.taxConfigService.getTimeTaxes();
+//        List<BasePriceDto> basePrices = this.taxConfigService.getBasePrices();
+//        int vehicleId = route.getCoords().get(0).getVehicleId();
+//        String registrationNumber = garageService.getRegistrationNumber(vehicleId);
+//        Vehicle vehicle = this.dvlaService.getVehicleByRegistrationNumber(registrationNumber);
+//        CalculatedPrice price = billingService.calculatePrice(route, basePrices, roadTaxes, timeTaxes, vehicle);
+//        this.billingService.createInvoice(vehicleId, price);
+//    }
 }

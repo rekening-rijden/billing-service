@@ -10,6 +10,7 @@ import com.rekeningrijden.billingservice.models.Invoice;
 import com.rekeningrijden.billingservice.models.Vehicle;
 import com.rekeningrijden.billingservice.services.BillingService;
 import com.rekeningrijden.billingservice.services.DvlaService;
+import com.rekeningrijden.billingservice.services.GarageService;
 import com.rekeningrijden.billingservice.services.TaxConfigService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -25,14 +26,17 @@ public class BillingController {
     private final BillingService billingService;
     private final DvlaService dvlaService;
     private final TaxConfigService taxConfigService;
+    private final GarageService garageService;
 
     public BillingController(
             BillingService billingService,
             DvlaService dvlaService,
-            TaxConfigService taxConfigService) {
+            TaxConfigService taxConfigService,
+            GarageService garageService) {
         this.billingService = billingService;
         this.dvlaService = dvlaService;
         this.taxConfigService = taxConfigService;
+        this.garageService = garageService;
     }
 
     @GetMapping("/invoice/getall/{carId}")
@@ -63,5 +67,8 @@ public class BillingController {
         return ResponseEntity.ok(vehicle);
     }
 
-
+    @GetMapping("/test")
+    public ResponseEntity<?> test() throws IOException, InterruptedException {
+        return ResponseEntity.ok(garageService.getRegistrationNumber(1));
+    }
 }
